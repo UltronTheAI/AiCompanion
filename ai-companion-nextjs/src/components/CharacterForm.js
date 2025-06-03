@@ -11,7 +11,9 @@ const CharacterForm = ({ clerkId, character, isEditing = false }) => {
     name: '',
     age: '',
     description: '',
-    interests: []
+    interests: [],
+    firstMessageType: 'none',
+    firstMessageText: ''
   });
   const [interestInput, setInterestInput] = useState('');
   const [imageFile, setImageFile] = useState(null);
@@ -26,7 +28,9 @@ const CharacterForm = ({ clerkId, character, isEditing = false }) => {
         name: character.name || '',
         age: character.age || '',
         description: character.description || '',
-        interests: character.interests || []
+        interests: character.interests || [],
+        firstMessageType: character.firstMessage?.type || 'none',
+        firstMessageText: character.firstMessage?.text || ''
       });
 
       if (character.avatarUrl) {
@@ -147,6 +151,14 @@ const CharacterForm = ({ clerkId, character, isEditing = false }) => {
       newErrors.age = 'Age must be a positive number';
     }
     
+    if (formData.firstMessageType === 'fixed' && !formData.firstMessageText.trim()) {
+      newErrors.firstMessageText = 'First message text is required when type is fixed';
+    }
+    
+    if (formData.firstMessageText && formData.firstMessageText.length > 1000) {
+      newErrors.firstMessageText = 'First message text must be 1000 characters or less';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -165,7 +177,9 @@ const CharacterForm = ({ clerkId, character, isEditing = false }) => {
           name: formData.name,
           age: formData.age ? parseInt(formData.age) : null,
           description: formData.description,
-          interests: formData.interests
+          interests: formData.interests,
+          firstMessageType: formData.firstMessageType,
+          firstMessageText: formData.firstMessageText
         });
         
         // If image exists, upload it
@@ -201,7 +215,9 @@ const CharacterForm = ({ clerkId, character, isEditing = false }) => {
           name: formData.name,
           age: formData.age ? parseInt(formData.age) : null,
           description: formData.description,
-          interests: formData.interests
+          interests: formData.interests,
+          firstMessageType: formData.firstMessageType,
+          firstMessageText: formData.firstMessageText
         });
         
         // If image exists, upload it
@@ -352,6 +368,84 @@ const CharacterForm = ({ clerkId, character, isEditing = false }) => {
           <div className={styles.interestCount}>
             {formData.interests.length}/50 interests
           </div>
+        </div>
+        
+        <div className={styles.formGroup}>
+          <label htmlFor="firstMessageType" className={styles.label}>First Message</label>
+          <div className={styles.radioGroup}>
+            <div className={styles.radioOption}>
+              <input
+                type="radio"
+                id="firstMessageNone"
+                name="firstMessageType"
+                value="none"
+                checked={formData.firstMessageType === 'none'}
+                onChange={handleChange}
+                className={styles.radioInput}
+              />
+              <label htmlFor="firstMessageNone" className={styles.radioLabel}>
+                No first message
+              </label>
+            </div>
+            
+            <div className={styles.radioOption}>
+              <input
+                type="radio"
+                id="firstMessageRandom"
+                name="firstMessageType"
+                value="random"
+                checked={formData.firstMessageType === 'random'}
+                onChange={handleChange}
+                className={styles.radioInput}
+              />
+              <label htmlFor="firstMessageRandom" className={styles.radioLabel}>
+                AI-generated greeting (random)
+              </label>
+            </div>
+            
+            <div className={styles.radioOption}>
+              <input
+                type="radio"
+                id="firstMessageFixed"
+                name="firstMessageType"
+                value="fixed"
+                checked={formData.firstMessageType === 'fixed'}
+                onChange={handleChange}
+                className={styles.radioInput}
+              />
+              <label htmlFor="firstMessageFixed" className={styles.radioLabel}>
+                Custom greeting (fixed)
+              </label>
+            </div>
+          </div>
+          
+          {formData.firstMessageType === 'fixed' && (
+            <div className={styles.firstMessageTextContainer}>
+              <textarea
+                id="firstMessageText"
+                name="firstMessageText"
+                value={formData.firstMessageText}
+                onChange={handleChange}
+                className={styles.textarea}
+                placeholder="Enter the greeting message your character will use to start conversations"
+                maxLength={1000}
+                rows={3}
+                required={formData.firstMessageType === 'fixed'}
+              />
+              {errors.firstMessageText && (
+                <div className={styles.fieldError}>{errors.firstMessageText}</div>
+              )}
+              <div className={styles.charCount}>
+                {formData.firstMessageText.length}/1000 characters
+              </div>
+            </div>
+          )}
+          
+          {formData.firstMessageType === 'random' && (
+            <div className={styles.infoMessage}>
+              The AI will generate a unique greeting message for each new conversation based on the character's personality.
+            </div>
+          )}
         </div>
         
         <div className={styles.formGroup}>

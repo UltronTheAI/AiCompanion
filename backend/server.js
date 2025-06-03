@@ -59,7 +59,22 @@ async function enhanceEmotionalResponse(text, character, userMessage) {
   // Get intensity level (defaults to moderate)
   const intensity = character.emotionalExpression?.intensity || "moderate";
   
-  // Adjust keyword sensitivity based on intensity
+  // Get character emotions
+  const emotions = character.personality?.emotions || {
+    happiness: 50,
+    anger: 0,
+    sadness: 0,
+    excitement: 50,
+    curiosity: 50
+  };
+  
+  // Determine dominant emotions (emotions with values >= 70)
+  const dominantEmotions = Object.entries(emotions)
+    .filter(([_, value]) => value >= 70)
+    .map(([emotion, value]) => ({ emotion, value }))
+    .sort((a, b) => b.value - a.value);
+  
+  // Adjust keyword sensitivity based on intensity and dominant emotions
   const baseEmotionalKeywords = [
     'love', 'like you', 'feelings', 'romantic', 'attracted', 'kiss', 'hug', 'touch',
     'emotion', 'feel', 'heart', 'blush', 'nervous', 'excited', 'intimate', 'close',
@@ -68,6 +83,27 @@ async function enhanceEmotionalResponse(text, character, userMessage) {
   
   // Add more keywords for higher intensity levels
   let emotionalKeywords = [...baseEmotionalKeywords];
+  
+  // Add keywords based on dominant emotions
+  dominantEmotions.forEach(({ emotion }) => {
+    switch(emotion) {
+      case 'happiness':
+        emotionalKeywords = emotionalKeywords.concat(['happy', 'joy', 'delighted', 'pleased', 'content']);
+        break;
+      case 'anger':
+        emotionalKeywords = emotionalKeywords.concat(['angry', 'upset', 'annoyed', 'irritated', 'frustrated']);
+        break;
+      case 'sadness':
+        emotionalKeywords = emotionalKeywords.concat(['sad', 'unhappy', 'disappointed', 'depressed', 'melancholy']);
+        break;
+      case 'excitement':
+        emotionalKeywords = emotionalKeywords.concat(['excited', 'thrilled', 'eager', 'enthusiastic', 'energetic']);
+        break;
+      case 'curiosity':
+        emotionalKeywords = emotionalKeywords.concat(['curious', 'interested', 'intrigued', 'fascinated', 'wondering']);
+        break;
+    }
+  });
   
   if (intensity === "expressive") {
     emotionalKeywords = emotionalKeywords.concat([
@@ -81,15 +117,21 @@ async function enhanceEmotionalResponse(text, character, userMessage) {
     );
   }
   
+  // Check if this is an emotional moment based on keywords or high emotion values
   const isEmotionalMoment = emotionalKeywords.some(keyword => 
     userMessage.toLowerCase().includes(keyword) || text.toLowerCase().includes(keyword)
-  );
+  ) || dominantEmotions.length > 0;
   
   if (!isEmotionalMoment) {
     return text; // Not an emotional moment, return as is
   }
   
   try {
+    // Create an emotion description for the prompt
+    const emotionDescription = dominantEmotions.length > 0 
+      ? `The character is currently feeling strong ${dominantEmotions.map(e => e.emotion).join(' and ')}.`
+      : '';
+    
     // Use Gemini to generate appropriate internal thoughts
     const prompt = `
       The AI character ${character.name} has responded to a user with this message:
@@ -98,8 +140,17 @@ async function enhanceEmotionalResponse(text, character, userMessage) {
       The user's message was:
       "${userMessage}"
       
-      This appears to be an emotional or romantic moment. Generate ONLY internal thoughts that ${character.name} might have
+      This appears to be an emotional moment. Generate ONLY internal thoughts that ${character.name} might have
       but not say directly. These thoughts should reflect true feelings, hesitations, desires, or emotional reactions.
+      
+      ${emotionDescription}
+      
+      Character's emotional state:
+      - Happiness: ${emotions.happiness}/100
+      - Anger: ${emotions.anger}/100
+      - Sadness: ${emotions.sadness}/100
+      - Excitement: ${emotions.excitement}/100
+      - Curiosity: ${emotions.curiosity}/100
       
       The emotional expression intensity is set to "${intensity}" (options: subtle, moderate, expressive).
       ${intensity === "subtle" ? "Keep thoughts very brief and restrained." : ""}
@@ -165,7 +216,7 @@ app.get('/v1/sentences', async (req, res) => {
     
     // Call Gemini API with structured response
     const response = await ai.models.generateContent({
-      model: "learnlm-2.0-flash-experimental",
+      model: "gemini-1.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -273,31 +324,16 @@ app.get('/v1/tts', async (req, res) => {
       return res.status(500).json({ error: 'Failed to generate audio' });
     }
     
+    // Convert base64 to buffer - this is already in WAV format
     const audioBuffer = Buffer.from(data, 'base64');
     
-    // Create temp filename
-    const tempFilePath = path.join(__dirname, `temp_${Date.now()}.wav`);
-    
-    // Save audio to temporary file
-    await saveWaveFile(tempFilePath, audioBuffer);
-    
-    // Set response headers and send file
+    // Set response headers
     res.setHeader('Content-Type', 'audio/wav');
     res.setHeader('Content-Disposition', `attachment; filename="tts_${voice}_${Date.now()}.wav"`);
+    res.setHeader('Content-Length', audioBuffer.length);
     
-    // Send file and delete it after sending
-    res.sendFile(tempFilePath, (err) => {
-      if (err) {
-        console.error('Error sending file:', err);
-      }
-      
-      // Delete temporary file after sending
-      fs.unlink(tempFilePath, (unlinkErr) => {
-        if (unlinkErr) {
-          console.error('Error deleting temporary file:', unlinkErr);
-        }
-      });
-    });
+    // Send audio data directly
+    res.send(audioBuffer);
     
   } catch (error) {
     console.error('TTS API Error:', error);
@@ -548,7 +584,7 @@ app.put('/v1/users/:clerkId', async (req, res) => {
 // Create AI character endpoint
 app.post('/v1/character', async (req, res) => {
   try {
-    const { clerkId, name, interests, age, description } = req.body;
+    const { clerkId, name, interests, age, description, firstMessageType, firstMessageText } = req.body;
     
     // Validate required fields
     if (!clerkId) {
@@ -571,6 +607,29 @@ app.post('/v1/character', async (req, res) => {
       return res.status(400).json({ 
         error: 'Description must be 1000 characters or less',
         field: 'description'
+      });
+    }
+
+    // Validate firstMessageType if provided
+    if (firstMessageType && !['fixed', 'random', 'none'].includes(firstMessageType)) {
+      return res.status(400).json({
+        error: 'First message type must be one of: fixed, random, none',
+        field: 'firstMessageType'
+      });
+    }
+    
+    // Validate firstMessageText if type is fixed
+    if (firstMessageType === 'fixed' && (!firstMessageText || firstMessageText.trim() === '')) {
+      return res.status(400).json({
+        error: 'First message text is required when type is fixed',
+        field: 'firstMessageText'
+      });
+    }
+    
+    if (firstMessageText && firstMessageText.length > 1000) {
+      return res.status(400).json({
+        error: 'First message text must be 1000 characters or less',
+        field: 'firstMessageText'
       });
     }
     
@@ -627,6 +686,10 @@ app.post('/v1/character', async (req, res) => {
         enabled: true,
         intensity: "moderate", // Options: "subtle", "moderate", "expressive"
         showThoughts: true
+      },
+      firstMessage: {
+        type: firstMessageType || 'none', // Options: "fixed", "random", "none"
+        text: firstMessageType === 'fixed' ? firstMessageText : ""
       },
       customAttributes: []
     };
@@ -837,6 +900,97 @@ app.post('/v1/conversations', async (req, res) => {
       pinnedMessages: [] // Array of message IDs that are pinned
     };
     
+    // Handle first message based on character settings
+    const firstMessageType = character.firstMessage?.type || 'none';
+    let firstMessage = null;
+    
+    if (firstMessageType === 'fixed' && character.firstMessage?.text) {
+      // Use the fixed first message
+      firstMessage = {
+        id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        role: 'assistant',
+        content: character.firstMessage.text,
+        timestamp: new Date()
+      };
+      
+      // Add message to conversation
+      newConversation.messages.push(firstMessage);
+      newConversation.messageCount = 1;
+    } else if (firstMessageType === 'random') {
+      // Generate a random first message using AI
+      try {
+        // Get character emotions
+        const emotions = character.personality?.emotions || {
+          happiness: 50,
+          anger: 0,
+          sadness: 0,
+          excitement: 50,
+          curiosity: 50
+        };
+        
+        // Determine dominant emotions (emotions with values >= 70)
+        const dominantEmotions = Object.entries(emotions)
+          .filter(([_, value]) => value >= 70)
+          .map(([emotion, value]) => ({ emotion, value }))
+          .sort((a, b) => b.value - a.value);
+        
+        // Create emotion description for the prompt
+        let emotionDescription = '';
+        if (dominantEmotions.length > 0) {
+          emotionDescription = `You are currently feeling strong ${dominantEmotions.map(e => e.emotion).join(' and ')}. This should significantly influence your response tone and content.`;
+        }
+        
+        // Generate AI greeting
+        const prompt = `
+          You are ${character.name}, an AI character with the following description:
+          ${character.description || 'A helpful AI assistant'}
+          
+          ${character.interests && character.interests.length > 0 
+            ? `Your interests include: ${character.interests.join(', ')}`
+            : ''}
+          
+          ${character.age ? `You are ${character.age} years old.` : ''}
+          
+          Your emotional state:
+          - Happiness: ${emotions.happiness}/100
+          - Anger: ${emotions.anger}/100
+          - Sadness: ${emotions.sadness}/100
+          - Excitement: ${emotions.excitement}/100
+          - Curiosity: ${emotions.curiosity}/100
+          
+          ${emotionDescription}
+          
+          Generate a brief, friendly opening message to start a conversation with a new user. 
+          Your message should reflect your character's personality and interests.
+          Keep it under 100 words and make it engaging to encourage the user to respond.
+          Do not use generic greetings like "Hello, how can I help you?" - make it personal to your character.
+          
+          IMPORTANT: When expressing emotions, especially during emotional moments, include your internal thoughts in *asterisks* like this: *I'm feeling excited to meet someone new*. These thoughts should reflect your true feelings that you might not directly say out loud.
+        `;
+        
+        // Call Gemini API
+        const response = await ai.models.generateContent({
+          model: "gemini-1.5-flash",
+          contents: prompt
+        });
+        
+        // Create first message
+        firstMessage = {
+          id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+          role: 'assistant',
+          content: response.text.trim(),
+          timestamp: new Date()
+        };
+        
+        // Add message to conversation
+        newConversation.messages.push(firstMessage);
+        newConversation.messageCount = 1;
+      } catch (aiError) {
+        console.error('Error generating first message:', aiError);
+        // Continue without first message if generation fails
+      }
+    }
+    
     const result = await conversationsCollection.insertOne(newConversation);
     
     // Update character's conversation count
@@ -853,7 +1007,8 @@ app.post('/v1/conversations', async (req, res) => {
       conversation: {
         _id: result.insertedId,
         ...newConversation
-      }
+      },
+      firstMessage
     });
     
   } catch (error) {
@@ -918,6 +1073,11 @@ app.get('/v1/conversations/:clerkId/:conversationId', async (req, res) => {
     // Validate input
     if (!clerkId || !conversationId) {
       return res.status(400).json({ error: 'Clerk ID and Conversation ID are required' });
+    }
+    
+    // Validate that conversationId is a valid ObjectId
+    if (!ObjectId.isValid(conversationId)) {
+      return res.status(400).json({ error: 'Invalid conversation ID format' });
     }
     
     // Connect to database
@@ -1012,6 +1172,27 @@ app.post('/v1/conversations/:conversationId/messages', async (req, res) => {
       }
     );
     
+    // Get character emotions
+    const emotions = character.personality?.emotions || {
+      happiness: 50,
+      anger: 0,
+      sadness: 0,
+      excitement: 50,
+      curiosity: 50
+    };
+    
+    // Determine dominant emotions (emotions with values >= 70)
+    const dominantEmotions = Object.entries(emotions)
+      .filter(([_, value]) => value >= 70)
+      .map(([emotion, value]) => ({ emotion, value }))
+      .sort((a, b) => b.value - a.value);
+    
+    // Create emotion description for the prompt
+    let emotionDescription = '';
+    if (dominantEmotions.length > 0) {
+      emotionDescription = `You are currently feeling strong ${dominantEmotions.map(e => e.emotion).join(' and ')}. This should significantly influence your response tone and content.`;
+    }
+    
     // Generate character context prompt
     const characterContext = `
       You are ${character.name}, an AI character with the following description:
@@ -1023,16 +1204,23 @@ app.post('/v1/conversations/:conversationId/messages', async (req, res) => {
       
       ${character.age ? `You are ${character.age} years old.` : ''}
       
-      ${character.personality && character.personality.emotions ? `
       Your emotional state:
-      - Happiness: ${character.personality.emotions.happiness || 50}/100
-      - Anger: ${character.personality.emotions.anger || 0}/100
-      - Sadness: ${character.personality.emotions.sadness || 0}/100
-      - Excitement: ${character.personality.emotions.excitement || 50}/100
-      - Curiosity: ${character.personality.emotions.curiosity || 50}/100
+      - Happiness: ${emotions.happiness}/100
+      - Anger: ${emotions.anger}/100
+      - Sadness: ${emotions.sadness}/100
+      - Excitement: ${emotions.excitement}/100
+      - Curiosity: ${emotions.curiosity}/100
+      
+      ${emotionDescription}
       
       Adjust your responses to reflect these emotional states. Higher values mean stronger emotions.
-      ` : ''}
+      
+      For example:
+      - With high happiness: Be more cheerful, optimistic, and use positive language
+      - With high anger: Be more curt, direct, or show irritation subtly
+      - With high sadness: Use more melancholic tone, express concern or disappointment
+      - With high excitement: Be more energetic, use exclamations, show enthusiasm
+      - With high curiosity: Ask more questions, show interest in learning more
 
       Respond to the user's message in character.
 
@@ -1099,7 +1287,8 @@ app.post('/v1/conversations/:conversationId/messages', async (req, res) => {
     
     // Call Gemini API
     const chat = ai.chats.create({
-      model: "learnlm-2.0-flash-experimental",
+      model: "gemini-1.5-flash",
+      // model: "learnlm-2.0-flash-experimental",
       history: chatHistory
     });
     
@@ -1221,6 +1410,27 @@ app.post('/v1/conversations/:conversationId/regenerate', async (req, res) => {
       }
     );
     
+    // Get character emotions
+    const emotions = character.personality?.emotions || {
+      happiness: 50,
+      anger: 0,
+      sadness: 0,
+      excitement: 50,
+      curiosity: 50
+    };
+    
+    // Determine dominant emotions (emotions with values >= 70)
+    const dominantEmotions = Object.entries(emotions)
+      .filter(([_, value]) => value >= 70)
+      .map(([emotion, value]) => ({ emotion, value }))
+      .sort((a, b) => b.value - a.value);
+    
+    // Create emotion description for the prompt
+    let emotionDescription = '';
+    if (dominantEmotions.length > 0) {
+      emotionDescription = `You are currently feeling strong ${dominantEmotions.map(e => e.emotion).join(' and ')}. This should significantly influence your response tone and content.`;
+    }
+    
     // Generate character context prompt
     const characterContext = `
       You are ${character.name}, an AI character with the following description:
@@ -1232,16 +1442,23 @@ app.post('/v1/conversations/:conversationId/regenerate', async (req, res) => {
       
       ${character.age ? `You are ${character.age} years old.` : ''}
       
-      ${character.personality && character.personality.emotions ? `
       Your emotional state:
-      - Happiness: ${character.personality.emotions.happiness || 50}/100
-      - Anger: ${character.personality.emotions.anger || 0}/100
-      - Sadness: ${character.personality.emotions.sadness || 0}/100
-      - Excitement: ${character.personality.emotions.excitement || 50}/100
-      - Curiosity: ${character.personality.emotions.curiosity || 50}/100
+      - Happiness: ${emotions.happiness}/100
+      - Anger: ${emotions.anger}/100
+      - Sadness: ${emotions.sadness}/100
+      - Excitement: ${emotions.excitement}/100
+      - Curiosity: ${emotions.curiosity}/100
+      
+      ${emotionDescription}
       
       Adjust your responses to reflect these emotional states. Higher values mean stronger emotions.
-      ` : ''}
+      
+      For example:
+      - With high happiness: Be more cheerful, optimistic, and use positive language
+      - With high anger: Be more curt, direct, or show irritation subtly
+      - With high sadness: Use more melancholic tone, express concern or disappointment
+      - With high excitement: Be more energetic, use exclamations, show enthusiasm
+      - With high curiosity: Ask more questions, show interest in learning more
 
       Respond to the user's message in character.
 
@@ -1257,8 +1474,38 @@ app.post('/v1/conversations/:conversationId/regenerate', async (req, res) => {
       parts: [{ text: characterContext }]
     });
     
-    // Add conversation history
-    messagesToKeep.forEach(msg => {
+    // Get pinned messages (if any)
+    const pinnedMessageIds = conversation.pinnedMessages || [];
+    const pinnedMessages = conversation.messages.filter(msg => pinnedMessageIds.includes(msg.id));
+    
+    // Add pinned messages first with special marker
+    if (pinnedMessages.length > 0) {
+      chatHistory.push({
+        role: 'model',
+        parts: [{ text: "IMPORTANT CONTEXT (pinned messages):" }]
+      });
+      
+      pinnedMessages.forEach(msg => {
+        // Map 'assistant' role to 'model' for Gemini API compatibility
+        const role = msg.role === 'assistant' ? 'model' : msg.role;
+        // Only add if role is 'user' or 'model' (skip 'system' roles)
+        if (role === 'user' || role === 'model') {
+          chatHistory.push({
+            role: role,
+            parts: [{ text: `${msg.role === 'user' ? 'User' : character.name}: ${msg.content}` }]
+          });
+        }
+      });
+      
+      chatHistory.push({
+        role: 'model',
+        parts: [{ text: "END OF PINNED MESSAGES. Continue the conversation naturally without explicitly referencing these pinned messages." }]
+      });
+    }
+    
+    // Add conversation history (last 20 messages)
+    const recentMessages = messagesToKeep.slice(-20);
+    recentMessages.forEach(msg => {
       // Map 'assistant' role to 'model' for Gemini API compatibility
       const role = msg.role === 'assistant' ? 'model' : msg.role;
       // Only add if role is 'user' or 'model' (skip 'system' roles)
@@ -1690,6 +1937,11 @@ app.put('/v1/character/:characterId/emotions', async (req, res) => {
       return res.status(400).json({ error: 'Character ID and Clerk ID are required' });
     }
     
+    // Validate that characterId is a valid ObjectId
+    if (!ObjectId.isValid(characterId)) {
+      return res.status(400).json({ error: 'Invalid character ID format' });
+    }
+    
     if (!emotions || typeof emotions !== 'object') {
       return res.status(400).json({ error: 'Emotions object is required' });
     }
@@ -1791,6 +2043,15 @@ app.post('/v1/conversations/:conversationId/messages/:messageId/pin', async (req
       return res.status(400).json({ error: 'Clerk ID is required' });
     }
     
+    if (!messageId || typeof messageId !== 'string') {
+      return res.status(400).json({ error: 'Valid message ID is required' });
+    }
+    
+    // Validate that conversationId is a valid ObjectId
+    if (!ObjectId.isValid(conversationId)) {
+      return res.status(400).json({ error: 'Invalid conversation ID format' });
+    }
+    
     // Connect to database
     const db = await connectToDatabase();
     const conversationsCollection = db.collection('conversations');
@@ -1862,6 +2123,15 @@ app.post('/v1/conversations/:conversationId/messages/:messageId/unpin', async (r
       return res.status(400).json({ error: 'Clerk ID is required' });
     }
     
+    if (!messageId || typeof messageId !== 'string') {
+      return res.status(400).json({ error: 'Valid message ID is required' });
+    }
+    
+    // Validate that conversationId is a valid ObjectId
+    if (!ObjectId.isValid(conversationId)) {
+      return res.status(400).json({ error: 'Invalid conversation ID format' });
+    }
+    
     // Connect to database
     const db = await connectToDatabase();
     const conversationsCollection = db.collection('conversations');
@@ -1916,6 +2186,11 @@ app.get('/v1/conversations/:conversationId/pinned', async (req, res) => {
     // Validate input
     if (!clerkId) {
       return res.status(400).json({ error: 'Clerk ID is required' });
+    }
+    
+    // Validate that conversationId is a valid ObjectId
+    if (!ObjectId.isValid(conversationId)) {
+      return res.status(400).json({ error: 'Invalid conversation ID format' });
     }
     
     // Connect to database
@@ -2012,7 +2287,7 @@ app.delete('/v1/character/:characterId', async (req, res) => {
 app.put('/v1/character/:characterId', async (req, res) => {
   try {
     const { characterId } = req.params;
-    const { clerkId, name, interests, age, description } = req.body;
+    const { clerkId, name, interests, age, description, firstMessageType, firstMessageText } = req.body;
     
     // Validate required fields
     if (!characterId || !clerkId) {
@@ -2038,6 +2313,29 @@ app.put('/v1/character/:characterId', async (req, res) => {
       });
     }
     
+    // Validate firstMessageType if provided
+    if (firstMessageType && !['fixed', 'random', 'none'].includes(firstMessageType)) {
+      return res.status(400).json({
+        error: 'First message type must be one of: fixed, random, none',
+        field: 'firstMessageType'
+      });
+    }
+    
+    // Validate firstMessageText if type is fixed
+    if (firstMessageType === 'fixed' && (!firstMessageText || firstMessageText.trim() === '')) {
+      return res.status(400).json({
+        error: 'First message text is required when type is fixed',
+        field: 'firstMessageText'
+      });
+    }
+    
+    if (firstMessageText && firstMessageText.length > 1000) {
+      return res.status(400).json({
+        error: 'First message text must be 1000 characters or less',
+        field: 'firstMessageText'
+      });
+    }
+    
     // Connect to database
     const db = await connectToDatabase();
     const charactersCollection = db.collection('characters');
@@ -2060,6 +2358,14 @@ app.put('/v1/character/:characterId', async (req, res) => {
       description: description || existingCharacter.description,
       updatedAt: new Date()
     };
+    
+    // Update first message settings if provided
+    if (firstMessageType) {
+      updateData['firstMessage'] = {
+        type: firstMessageType,
+        text: firstMessageType === 'fixed' ? firstMessageText : (existingCharacter.firstMessage?.text || "")
+      };
+    }
     
     // Update character
     const updateResult = await charactersCollection.updateOne(

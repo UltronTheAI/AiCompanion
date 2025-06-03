@@ -131,7 +131,7 @@ export default function ProfileForm({ dbUser, onProfileUpdate }) {
       {success && <div className={styles.success}>Profile updated successfully!</div>}
       
       <form onSubmit={handleSubmit} className={styles.form}>
-        <div className={styles.profileImageSection}>
+        {/* <div className={styles.profileImageSection}>
           <div className={styles.imagePreview}>
             {formData.avatarUrl ? (
               <img 
@@ -163,7 +163,7 @@ export default function ProfileForm({ dbUser, onProfileUpdate }) {
             />
             <p className={styles.imageHelp}>Enter a URL to your profile image</p>
           </div>
-        </div>
+        </div> */}
         
         <div className={styles.formGroup}>
           <label htmlFor="displayName">Display Name</label>

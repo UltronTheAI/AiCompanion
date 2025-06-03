@@ -239,4 +239,26 @@
     padding: 6px 12px;
     font-size: 0.85rem;
   }
+}
+
+.audioError {
+  background-color: rgba(255, 77, 79, 0.1);
+  border: 1px solid rgba(255, 77, 79, 0.3);
+  color: #ff4d4f;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin: 12px 0;
+  text-align: center;
+}
+
+.pinnedMessage {
+  border-left: 3px solid var(--primary-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pinnedBadge {
+  margin-left: 6px;
+  font-size: 0.9rem;
+  color: var(--primary-color);
 } 

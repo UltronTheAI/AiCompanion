@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+import { isValidObjectId, getObjectIdString } from '@/utils/validation';
 
 /**
  * Makes API requests to the backend server
@@ -506,6 +507,95 @@ const api = {
   },
   
   /**
+   * Updates a character's emotions
+   * @param {string} characterId - The character ID
+   * @param {string} clerkId - The Clerk user ID
+   * @param {Object} emotions - The emotions to update (happiness, anger, sadness, excitement, curiosity)
+   * @returns {Promise<Object>} - Response with updated character data
+   */
+  updateCharacterEmotions: async (characterId, clerkId, emotions) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/v1/character/${characterId}/emotions`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clerkId,
+          emotions
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update character emotions');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating character emotions:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Gets pinned messages for a conversation
+   * @param {string|object} conversationId - The conversation ID (can be string or {$oid: string})
+   * @param {string} clerkId - The Clerk user ID
+   * @returns {Promise<Object>} - Response with pinned messages
+   */
+  getPinnedMessages: async (conversationId, clerkId) => {
+    try {
+      // Validate inputs
+      if (!conversationId) {
+        throw new Error('Conversation ID is required');
+      }
+      
+      if (!clerkId) {
+        throw new Error('Clerk ID is required');
+      }
+      
+      // Get string value of ObjectId
+      const conversationIdStr = getObjectIdString(conversationId);
+      if (!conversationIdStr) {
+        throw new Error('Invalid conversation ID format');
+      }
+      
+      console.log(`API call: Getting pinned messages for conversation ${conversationIdStr}`);
+      console.log(`API URL: ${API_BASE_URL}/v1/conversations/${conversationIdStr}/pinned?clerkId=${clerkId}`);
+      
+      const response = await fetch(`${API_BASE_URL}/v1/conversations/${conversationIdStr}/pinned?clerkId=${clerkId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
+        throw new Error(errorData.error || `Failed to get pinned messages. Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Log the structure of the response to help debug
+      console.log('Pinned messages response data:', {
+        success: data.success,
+        count: data.count,
+        pinnedMessagesCount: data.pinnedMessages?.length || 0,
+        sampleMessage: data.pinnedMessages?.length > 0 ? 
+          { id: data.pinnedMessages[0].id, role: data.pinnedMessages[0].role } : 
+          null
+      });
+      
+      return data;
+    } catch (error) {
+      console.error('Error getting pinned messages:', error);
+      throw error;
+    }
+  },
+  
+  /**
    * Gets user limits and usage
    * @param {string} clerkId - The Clerk user ID
    * @returns {Promise<Object>} - Response with limits data
@@ -524,7 +614,81 @@ const api = {
       console.error('Error getting user limits:', error);
       throw error;
     }
-  }
+  },
+
+  /**
+   * Pins a message in a conversation
+   * @param {string|object} conversationId - The conversation ID (can be string or {$oid: string})
+   * @param {string} messageId - The message ID to pin
+   * @param {string} clerkId - The Clerk user ID
+   * @returns {Promise<Object>} - Response with pin status
+   */
+  pinMessage: async (conversationId, messageId, clerkId) => {
+    try {
+      // Get string value of ObjectId
+      const conversationIdStr = getObjectIdString(conversationId);
+      if (!conversationIdStr) {
+        throw new Error('Invalid conversation ID format');
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/v1/conversations/${conversationIdStr}/messages/${messageId}/pin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clerkId
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to pin message');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error pinning message:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Unpins a message from a conversation
+   * @param {string|object} conversationId - The conversation ID (can be string or {$oid: string})
+   * @param {string} messageId - The message ID to unpin
+   * @param {string} clerkId - The Clerk user ID
+   * @returns {Promise<Object>} - Response with unpin status
+   */
+  unpinMessage: async (conversationId, messageId, clerkId) => {
+    try {
+      // Get string value of ObjectId
+      const conversationIdStr = getObjectIdString(conversationId);
+      if (!conversationIdStr) {
+        throw new Error('Invalid conversation ID format');
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/v1/conversations/${conversationIdStr}/messages/${messageId}/unpin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clerkId
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to unpin message');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error unpinning message:', error);
+      throw error;
+    }
+  },
 };
 
 export default api; 

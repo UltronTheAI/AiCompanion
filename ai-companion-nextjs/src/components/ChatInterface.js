@@ -8,6 +8,9 @@ import styles from './ChatInterface.module.css';
 import ConversationSidebar from './ConversationSidebar';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
+import PinnedMessages from './PinnedMessages';
+import CharacterEmotions from './CharacterEmotions';
+import { isValidObjectId, hasValidObjectId } from '@/utils/validation';
 
 const ChatInterface = ({
   character,
@@ -21,16 +24,22 @@ const ChatInterface = ({
 }) => {
   const router = useRouter();
   const [messages, setMessages] = useState(conversation?.messages || []);
+  const [pinnedMessages, setPinnedMessages] = useState(conversation?.pinnedMessages || []);
   const [isSending, setIsSending] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [error, setError] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef(null);
+  const pinnedMessagesRef = useRef(null);
 
   useEffect(() => {
     // Update messages when conversation changes
     if (conversation && conversation.messages) {
       setMessages(conversation.messages);
+      setPinnedMessages(conversation.pinnedMessages || []);
+      
+      // No need to validate here as we'll validate in fetchPinnedMessages
     }
   }, [conversation]);
 
@@ -38,6 +47,51 @@ const ChatInterface = ({
     // Scroll to bottom when messages change
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    // Fetch pinned messages on component mount and when conversation changes
+    if (conversation?._id) {
+      fetchPinnedMessages();
+    }
+  }, [conversation?._id]);
+
+  const fetchPinnedMessages = async () => {
+    try {
+      if (!conversation || !conversation._id) {
+        console.warn('ChatInterface: No valid conversation ID available');
+        return;
+      }
+      
+      // No need to validate here as the API will handle validation
+      
+      console.log('ChatInterface: Fetching pinned messages for conversation', conversation._id);
+      
+      // Don't make an API call if we already have the pinned messages in the conversation object
+      if (conversation.pinnedMessages && Array.isArray(conversation.pinnedMessages)) {
+        console.log('ChatInterface: Using pinned messages from conversation object:', conversation.pinnedMessages);
+        setPinnedMessages(conversation.pinnedMessages);
+        return;
+      }
+      
+      // Otherwise, fetch from the API
+      const response = await api.getPinnedMessages(conversation._id, clerkId);
+      
+      // Check if response has pinnedMessages property
+      if (response && Array.isArray(response.pinnedMessages)) {
+        console.log('ChatInterface: Received pinned messages:', response.pinnedMessages.length);
+        // Extract just the message IDs for the state
+        const pinnedIds = response.pinnedMessages.map(msg => msg.id);
+        setPinnedMessages(pinnedIds);
+      } else {
+        console.warn('ChatInterface: Invalid pinned messages response', response);
+        setPinnedMessages([]);
+      }
+    } catch (err) {
+      console.error('ChatInterface: Error fetching pinned messages:', err);
+      // Don't update state on error to keep any existing pinned messages
+      // Don't show error messages to the user
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -197,6 +251,51 @@ const ChatInterface = ({
     }
   };
 
+  const handlePinMessage = async (messageId) => {
+    try {
+      // Don't show error messages
+      setError(null);
+      
+      // Validate conversation ID
+      if (!hasValidObjectId(conversation)) {
+        console.error('Invalid conversation ID format. Please refresh the page.');
+        return;
+      }
+      
+      // Find the message to make sure it exists
+      const message = messages.find(msg => msg.id === messageId);
+      if (!message) {
+        console.error('Message not found');
+        return;
+      }
+      
+      // Check if message is already pinned
+      const isPinned = pinnedMessages.includes(messageId);
+      
+      if (isPinned) {
+        // Unpin the message
+        await api.unpinMessage(conversation._id, messageId, clerkId);
+        setPinnedMessages(prev => prev.filter(id => id !== messageId));
+        // Don't show success message
+      } else {
+        // Pin the message
+        const response = await api.pinMessage(conversation._id, messageId, clerkId);
+        setPinnedMessages(prev => [...prev, messageId]);
+        // Don't show success message
+      }
+      
+      // Don't automatically open settings panel
+      
+      // Refresh pinned messages list if it's already visible
+      if (showSettings && pinnedMessagesRef.current) {
+        pinnedMessagesRef.current.refresh();
+      }
+    } catch (err) {
+      console.error('Error pinning/unpinning message:', err);
+      // Don't show error messages
+    }
+  };
+
   const handleClearConversation = async () => {
     if (!window.confirm('Are you sure you want to clear this conversation? This cannot be undone.')) {
       return;
@@ -219,6 +318,21 @@ const ChatInterface = ({
 
   const toggleSidebar = () => {
     setSidebarOpen(prev => !prev);
+  };
+
+  const toggleSettings = () => {
+    setShowSettings(prev => {
+      // If opening settings, refresh pinned messages
+      if (!prev && pinnedMessagesRef.current) {
+        setTimeout(() => pinnedMessagesRef.current.refresh(), 100);
+      }
+      return !prev;
+    });
+  };
+
+  const handleCharacterUpdate = (updatedCharacter) => {
+    // This would be called when character emotions are updated
+    // You could update the character state here if needed
   };
 
   return (
@@ -262,6 +376,14 @@ const ChatInterface = ({
           
           <div className={styles.chatActions}>
             <button
+              className={`${styles.settingsButton} ${showSettings ? styles.active : ''}`}
+              onClick={toggleSettings}
+              aria-label="Character settings"
+              title="Character settings"
+            >
+              ⚙️
+            </button>
+            <button
               className={styles.clearButton}
               onClick={handleClearConversation}
               disabled={messages.length === 0}
@@ -277,6 +399,23 @@ const ChatInterface = ({
           </div>
         </div>
         
+        {showSettings && (
+          <div className={styles.settingsPanel}>
+            <CharacterEmotions 
+              character={character} 
+              clerkId={clerkId} 
+              onUpdate={handleCharacterUpdate} 
+            />
+            <PinnedMessages 
+              conversationId={conversation._id} 
+              clerkId={clerkId}
+              ref={pinnedMessagesRef}
+              onUpdate={fetchPinnedMessages}
+              conversation={conversation}
+            />
+          </div>
+        )}
+        
         <div className={styles.chatMessages}>
           {messages.length === 0 ? (
             <div className={styles.emptyChat}>
@@ -290,8 +429,10 @@ const ChatInterface = ({
               character={character}
               onEditMessage={handleEditMessage}
               onDeleteMessage={handleDeleteMessage}
+              onPinMessage={handlePinMessage}
               onRegenerateResponse={handleRegenerateResponse}
               isRegenerating={isRegenerating}
+              pinnedMessages={pinnedMessages}
             />
           )}
           <div ref={messagesEndRef} />

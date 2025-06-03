@@ -1,0 +1,140 @@
+.container {
+  background-color: var(--background-secondary);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.title::before {
+  content: "📌";
+  font-size: 1rem;
+}
+
+.messageList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.messageItem {
+  background-color: var(--background-tertiary);
+  border-radius: 6px;
+  padding: 12px;
+  position: relative;
+}
+
+.messageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.messageRole {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background-color: var(--background-primary);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.messageContent {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.unpinButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.unpinButton:hover {
+  opacity: 1;
+}
+
+.unpinIcon {
+  font-size: 1rem;
+  transform: rotate(45deg);
+}
+
+.loading {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 16px;
+}
+
+.error {
+  background-color: rgba(255, 77, 79, 0.1);
+  border: 1px solid rgba(255, 77, 79, 0.3);
+  color: #ff4d4f;
+  padding: 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin: 10px 0;
+  text-align: center;
+}
+
+.error p {
+  margin-bottom: 12px;
+  word-break: break-word;
+}
+
+.retryButton {
+  background-color: #ff4d4f;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin: 8px auto;
+  display: block;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.retryButton:hover {
+  background-color: #ff3333;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(255, 77, 79, 0.3);
+}
+
+.retryButton:active {
+  transform: translateY(0);
+}
+
+.empty {
+  text-align: center;
+  padding: 20px 16px;
+  color: var(--text-secondary);
+}
+
+.empty p {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.empty small {
+  font-size: 0.85rem;
+  opacity: 0.8;
+} 
