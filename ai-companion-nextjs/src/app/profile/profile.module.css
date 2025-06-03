@@ -1,0 +1,20 @@
+.container {
+  padding: 2rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+@media (prefers-color-scheme: dark) {
+  .loading {
+    color: #999;
+  }
+} 

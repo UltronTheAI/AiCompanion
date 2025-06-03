@@ -1,0 +1,242 @@
+.messageList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.messageContainer {
+  padding: 16px 20px;
+  border-radius: 16px;
+  position: relative;
+  transition: all 0.3s ease;
+  max-width: 90%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.userMessage {
+  background-color: var(--background-tertiary);
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+  border-top-left-radius: 20px;
+  color: var(--text-primary);
+}
+
+.aiMessage {
+  background-color: var(--background-secondary);
+  margin-right: auto;
+  border-bottom-left-radius: 4px;
+  border-top-right-radius: 20px;
+  color: var(--text-primary);
+}
+
+.pending {
+  opacity: 0.7;
+}
+
+.pending::after {
+  content: '';
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--primary-color);
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+.regenerating {
+  opacity: 0.5;
+}
+
+.regenerating::after {
+  content: '';
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--primary-color);
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.messageHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+}
+
+.messageAuthor {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.userMessage .messageAuthor::before {
+  content: "👤";
+}
+
+.aiMessage .messageAuthor::before {
+  content: "🤖";
+}
+
+.messageTime {
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+}
+
+.editedTag {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+.messageContent {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.messageActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  justify-content: flex-end;
+}
+
+.messageContainer:hover .messageActions {
+  opacity: 1;
+}
+
+.actionButton {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.actionButton:hover:not(:disabled) {
+  background-color: var(--background-hover);
+  color: var(--primary-color);
+}
+
+.actionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.editContainer {
+  width: 100%;
+}
+
+.editTextarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--primary-light);
+  border-radius: 10px;
+  background-color: var(--background-primary);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  min-height: 120px;
+  resize: vertical;
+  margin-bottom: 12px;
+  font-family: inherit;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  transition: all 0.2s ease;
+}
+
+.editTextarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.editActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.saveButton, .cancelButton {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+}
+
+.saveButton {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.saveButton:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.saveButton:active {
+  transform: translateY(0);
+}
+
+.cancelButton {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.cancelButton:hover {
+  background-color: var(--background-hover);
+  color: var(--text-primary);
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .messageContainer {
+    max-width: 95%;
+    padding: 14px 16px;
+  }
+  
+  .messageActions {
+    margin-top: 10px;
+  }
+  
+  .actionButton {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+  }
+  
+  .saveButton, .cancelButton {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+} 

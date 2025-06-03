@@ -1,0 +1,320 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.limitsInfo {
+  background-color: var(--background-tertiary);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-right: auto;
+  margin-left: 16px;
+}
+
+.createButton {
+  padding: 10px 16px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 6px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.createButton:hover {
+  background-color: var(--primary-dark);
+}
+
+.errorMessage {
+  background-color: rgba(255, 77, 79, 0.1);
+  border: 1px solid rgba(255, 77, 79, 0.3);
+  color: #ff4d4f;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin-bottom: 24px;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  background-color: var(--background-secondary);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.emptyState h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.emptyState p {
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.createEmptyButton {
+  padding: 12px 24px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 6px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.createEmptyButton:hover {
+  background-color: var(--primary-dark);
+}
+
+.charactersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.characterCard {
+  background-color: var(--background-secondary);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.characterCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.characterImage {
+  height: 180px;
+  overflow: hidden;
+  background-color: var(--background-tertiary);
+}
+
+.characterImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholderImage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background-color: var(--background-tertiary);
+}
+
+.characterInfo {
+  padding: 16px;
+}
+
+.characterName {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.characterAge {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.interestTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.interestTag, .moreTag {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background-color: var(--tag-bg);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+
+.moreTag {
+  background-color: var(--background-tertiary);
+  color: var(--text-secondary);
+}
+
+.characterActions {
+  display: flex;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-color);
+  gap: 8px;
+}
+
+.chatButton, .editButton, .deleteButton {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  text-decoration: none;
+  text-align: center;
+  transition: background-color 0.2s;
+  flex: 1;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.chatButton {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.chatButton:hover {
+  background-color: var(--primary-dark);
+}
+
+.editButton {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.editButton:hover {
+  background-color: var(--background-hover);
+}
+
+.deleteButton {
+  background-color: transparent;
+  border: 1px solid #ff4d4f;
+  color: #ff4d4f;
+}
+
+.deleteButton:hover {
+  background-color: rgba(255, 77, 79, 0.1);
+}
+
+/* Modal styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: var(--background-primary);
+  border-radius: 8px;
+  padding: 24px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.modalTitle {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #ff4d4f;
+}
+
+.modal p {
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancelButton, .confirmDeleteButton {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancelButton {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.cancelButton:hover:not(:disabled) {
+  background-color: var(--background-hover);
+}
+
+.confirmDeleteButton {
+  background-color: #ff4d4f;
+  border: none;
+  color: white;
+}
+
+.confirmDeleteButton:hover:not(:disabled) {
+  background-color: #ff7875;
+}
+
+.cancelButton:disabled, .confirmDeleteButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .charactersGrid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .charactersGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .limitsInfo {
+    margin-left: 0;
+    margin-bottom: 8px;
+  }
+  
+  .createButton {
+    width: 100%;
+    justify-content: center;
+  }
+} 

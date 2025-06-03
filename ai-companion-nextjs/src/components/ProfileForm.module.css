@@ -1,0 +1,278 @@
+.formContainer {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: var(--background);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.formTitle {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profileImageSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.imagePreview {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #eaeaea;
+}
+
+.profileImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholderImage {
+  width: 100%;
+  height: 100%;
+  background-color: #e0e0e0;
+  color: #666;
+  font-size: 3rem;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.imageHelp {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.formGroup label {
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.charCount {
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: normal;
+}
+
+.input, .textarea {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.interestInput, .variableInput {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.variableInput {
+  flex-wrap: wrap;
+}
+
+.addButton {
+  padding: 0.75rem 1rem;
+  background-color: #e0e0e0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.addButton:hover {
+  background-color: #d0d0d0;
+}
+
+.addButton:disabled {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+  color: #999;
+}
+
+.tagsList, .variablesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.tag, .variable {
+  background-color: #f0f0f0;
+  padding: 0.5rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.removeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.removeButton:hover {
+  color: #ff4040;
+}
+
+.submitButton {
+  padding: 0.75rem;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.submitButton:hover {
+  background-color: #333;
+}
+
+.submitButton:disabled {
+  background-color: #999;
+  cursor: not-allowed;
+}
+
+.error {
+  background-color: #ffebee;
+  color: #d32f2f;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .formContainer {
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+  }
+  
+  .input, .textarea {
+    border-color: #444;
+  }
+  
+  .imagePreview {
+    border-color: #444;
+  }
+  
+  .placeholderImage {
+    background-color: #333;
+    color: #ccc;
+  }
+  
+  .imageHelp {
+    color: #aaa;
+  }
+  
+  .charCount {
+    color: #aaa;
+  }
+  
+  .addButton {
+    background-color: #333;
+    color: #fff;
+  }
+  
+  .addButton:hover {
+    background-color: #444;
+  }
+  
+  .addButton:disabled {
+    background-color: #222;
+    color: #666;
+  }
+  
+  .tag, .variable {
+    background-color: #333;
+  }
+  
+  .removeButton {
+    color: #999;
+  }
+  
+  .submitButton {
+    background-color: #fff;
+    color: #000;
+  }
+  
+  .submitButton:hover {
+    background-color: #ddd;
+  }
+  
+  .error {
+    background-color: #421c1c;
+    color: #ff8a80;
+  }
+  
+  .success {
+    background-color: #1c3a1c;
+    color: #a5d6a7;
+  }
+}
+
+/* Responsive styles */
+@media (min-width: 768px) {
+  .profileImageSection {
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+  
+  .imagePreview {
+    margin-right: 2rem;
+  }
+} 

@@ -1,0 +1,121 @@
+.inputForm {
+  width: 100%;
+}
+
+.inputContainer {
+  display: flex;
+  background-color: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 10px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.inputContainer:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.textarea {
+  flex: 1;
+  border: none;
+  background: none;
+  resize: none;
+  padding: 10px;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  font-family: inherit;
+  min-height: 24px;
+  max-height: 200px;
+  overflow-y: auto;
+  line-height: 1.5;
+}
+
+.textarea:focus {
+  outline: none;
+}
+
+.textarea:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+.sendButton {
+  align-self: flex-end;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  height: 40px;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.sendButton:hover:not(:disabled) {
+  background-color: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.sendButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.sendButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loadingIndicator {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.inputHint {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-top: 6px;
+  text-align: right;
+  padding-right: 10px;
+  opacity: 0.8;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .inputContainer {
+    padding: 8px;
+  }
+  
+  .textarea {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+  
+  .sendButton {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    min-width: 70px;
+    height: 36px;
+  }
+} 
