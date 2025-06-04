@@ -20,6 +20,7 @@ const CharacterForm = ({ clerkId, character, isEditing = false }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [randomizing, setRandomizing] = useState(false);
 
   // Populate form data if editing
   useEffect(() => {
@@ -171,6 +172,9 @@ const CharacterForm = ({ clerkId, character, isEditing = false }) => {
     try {
       setLoading(true);
       
+      // Determine if we're using an external avatar URL
+      const isExternalAvatar = imagePreview && !imageFile && imagePreview.startsWith('http');
+      
       if (isEditing) {
         // Update character
         await api.updateCharacter(character._id, clerkId, {
@@ -179,10 +183,12 @@ const CharacterForm = ({ clerkId, character, isEditing = false }) => {
           description: formData.description,
           interests: formData.interests,
           firstMessageType: formData.firstMessageType,
-          firstMessageText: formData.firstMessageText
+          firstMessageText: formData.firstMessageText,
+          // Include the external avatar URL if using one
+          avatarUrl: isExternalAvatar ? imagePreview : undefined
         });
         
-        // If image exists, upload it
+        // If local image file exists, upload it
         if (imageFile) {
           const reader = new FileReader();
           reader.onload = async () => {
@@ -217,10 +223,12 @@ const CharacterForm = ({ clerkId, character, isEditing = false }) => {
           description: formData.description,
           interests: formData.interests,
           firstMessageType: formData.firstMessageType,
-          firstMessageText: formData.firstMessageText
+          firstMessageText: formData.firstMessageText,
+          // Include the external avatar URL if using one
+          avatarUrl: isExternalAvatar ? imagePreview : undefined
         });
         
-        // If image exists, upload it
+        // If local image file exists, upload it
         if (imageFile && characterResponse.character._id) {
           const reader = new FileReader();
           reader.onload = async () => {
@@ -258,12 +266,63 @@ const CharacterForm = ({ clerkId, character, isEditing = false }) => {
     }
   };
 
+  const handleRandomize = async () => {
+    try {
+      setRandomizing(true);
+      setErrors({});
+      
+      // Call the API to get a random character
+      const randomCharacter = await api.getRandomCharacter();
+      
+      // Update the form data with the random character details
+      setFormData(prev => ({
+        ...prev,
+        name: randomCharacter.name,
+        age: randomCharacter.age.toString(),
+        description: randomCharacter.description,
+        interests: randomCharacter.interests,
+        firstMessageType: 'fixed',
+        firstMessageText: randomCharacter.greeting || ''
+      }));
+      
+      // Set the avatar image preview if avatarUrl is provided
+      if (randomCharacter.avatarUrl) {
+        setImagePreview(randomCharacter.avatarUrl);
+        // We don't set imageFile because we're using an external URL
+        // The backend will handle this URL separately
+      }
+      
+    } catch (error) {
+      console.error('Error generating random character:', error);
+      setErrors(prev => ({
+        ...prev,
+        submit: error.message || 'Failed to generate random character. Please try again.'
+      }));
+    } finally {
+      setRandomizing(false);
+    }
+  };
+
   return (
     <div className={styles.formContainer}>
       <form onSubmit={handleSubmit} className={styles.form}>
         {errors.submit && (
           <div className={styles.errorMessage}>{errors.submit}</div>
         )}
+        
+        <div className={styles.formHeader}>
+          <h2 className={styles.formTitle}>{isEditing ? 'Edit Character' : 'Create Character'}</h2>
+          {!isEditing && (
+            <button
+              type="button"
+              onClick={handleRandomize}
+              className={styles.randomizeButton}
+              disabled={randomizing || loading}
+            >
+              {randomizing ? 'Generating...' : 'Randomize'}
+            </button>
+          )}
+        </div>
         
         <div className={styles.formGroup}>
           <label htmlFor="name" className={styles.label}>

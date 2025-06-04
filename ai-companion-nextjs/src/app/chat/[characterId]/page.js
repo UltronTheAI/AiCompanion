@@ -29,10 +29,8 @@ export default function CharacterChatPage() {
       setLoading(true);
       
       // Fetch character
-      const charactersResponse = await api.getUserCharacters(user.id);
-      const foundCharacter = charactersResponse.characters.find(
-        char => char._id === characterId
-      );
+      const characterResponse = await api.getCharacter(characterId, user.id);
+      const foundCharacter = characterResponse.character;
       
       if (!foundCharacter) {
         setError('Character not found');

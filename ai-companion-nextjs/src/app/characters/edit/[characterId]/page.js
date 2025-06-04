@@ -25,15 +25,8 @@ export default function EditCharacterPage({ params }) {
   const fetchCharacter = async () => {
     try {
       setLoading(true);
-      const response = await api.getUserCharacters(user.id);
-      const foundCharacter = response.characters.find(char => char._id === characterId);
-      
-      if (!foundCharacter) {
-        setError('Character not found');
-        return;
-      }
-      
-      setCharacter(foundCharacter);
+      const response = await api.getCharacter(characterId, user.id);
+      setCharacter(response.character);
     } catch (err) {
       console.error('Error fetching character:', err);
       setError('Failed to load character. Please try again.');

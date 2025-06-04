@@ -145,6 +145,33 @@ const api = {
   },
 
   /**
+   * Gets a single character by ID
+   * @param {string} characterId - The character ID
+   * @param {string} clerkId - Optional Clerk user ID for access verification
+   * @returns {Promise<Object>} - Response with character data
+   */
+  getCharacter: async (characterId, clerkId = null) => {
+    try {
+      let url = `${API_BASE_URL}/v1/character/${characterId}`;
+      if (clerkId) {
+        url += `?clerkId=${clerkId}`;
+      }
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to get character');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting character:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Creates a new conversation with a character
    * @param {string} clerkId - The Clerk user ID
    * @param {string} characterId - The character ID
@@ -689,6 +716,26 @@ const api = {
       throw error;
     }
   },
+
+  /**
+   * Gets a randomly generated character
+   * @returns {Promise<Object>} - Response with random character data
+   */
+  getRandomCharacter: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/v1/random-character`);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate random character');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error generating random character:', error);
+      throw error;
+    }
+  }
 };
 
 export default api; 

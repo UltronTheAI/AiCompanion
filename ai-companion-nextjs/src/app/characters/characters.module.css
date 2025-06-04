@@ -176,7 +176,7 @@
   gap: 8px;
 }
 
-.chatButton, .editButton, .deleteButton {
+.chatButton, .editButton, .deleteButton, .viewButton {
   padding: 8px 16px;
   border-radius: 6px;
   font-weight: 500;
@@ -195,6 +195,15 @@
 
 .chatButton:hover {
   background-color: var(--primary-dark);
+}
+
+.viewButton {
+  background-color: var(--background-tertiary);
+  color: var(--text-primary);
+}
+
+.viewButton:hover {
+  background-color: var(--background-hover);
 }
 
 .editButton {

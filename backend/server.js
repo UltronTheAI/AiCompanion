@@ -584,7 +584,7 @@ app.put('/v1/users/:clerkId', async (req, res) => {
 // Create AI character endpoint
 app.post('/v1/character', async (req, res) => {
   try {
-    const { clerkId, name, interests, age, description, firstMessageType, firstMessageText } = req.body;
+    const { clerkId, name, interests, age, description, firstMessageType, firstMessageText, avatarUrl } = req.body;
     
     // Validate required fields
     if (!clerkId) {
@@ -667,7 +667,7 @@ app.post('/v1/character', async (req, res) => {
       createdAt: new Date(),
       updatedAt: new Date(),
       isActive: true,
-      avatarUrl: "", // Default empty avatar URL
+      avatarUrl: avatarUrl || "", // Use provided avatar URL or empty string
       conversationCount: 0,
       lastInteraction: null,
       personality: {
@@ -832,6 +832,49 @@ app.get('/v1/characters/:clerkId', async (req, res) => {
     console.error('Get Characters API Error:', error);
     res.status(500).json({ 
       error: 'Failed to get characters', 
+      details: error.message 
+    });
+  }
+});
+
+// Get a single character by ID
+app.get('/v1/character/:characterId', async (req, res) => {
+  try {
+    const { characterId } = req.params;
+    const { clerkId } = req.query;
+    
+    // Validate input
+    if (!characterId) {
+      return res.status(400).json({ error: 'Character ID is required' });
+    }
+    
+    // Connect to database
+    const db = await connectToDatabase();
+    const charactersCollection = db.collection('characters');
+    
+    // Get the character
+    const character = await charactersCollection.findOne({ 
+      _id: new ObjectId(characterId)
+    });
+    
+    if (!character) {
+      return res.status(404).json({ error: 'Character not found' });
+    }
+    
+    // If clerkId is provided, check that the user has access to this character
+    if (clerkId && character.clerkId !== clerkId) {
+      return res.status(403).json({ error: 'You do not have access to this character' });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      character
+    });
+    
+  } catch (error) {
+    console.error('Get Character API Error:', error);
+    res.status(500).json({ 
+      error: 'Failed to get character', 
       details: error.message 
     });
   }
@@ -2287,7 +2330,7 @@ app.delete('/v1/character/:characterId', async (req, res) => {
 app.put('/v1/character/:characterId', async (req, res) => {
   try {
     const { characterId } = req.params;
-    const { clerkId, name, interests, age, description, firstMessageType, firstMessageText } = req.body;
+    const { clerkId, name, interests, age, description, firstMessageType, firstMessageText, avatarUrl } = req.body;
     
     // Validate required fields
     if (!characterId || !clerkId) {
@@ -2358,6 +2401,11 @@ app.put('/v1/character/:characterId', async (req, res) => {
       description: description || existingCharacter.description,
       updatedAt: new Date()
     };
+    
+    // Update avatar URL if provided
+    if (avatarUrl) {
+      updateData.avatarUrl = avatarUrl;
+    }
     
     // Update first message settings if provided
     if (firstMessageType) {
@@ -2459,6 +2507,106 @@ app.get('/v1/users/:clerkId/limits', async (req, res) => {
     console.error('Get User Limits API Error:', error);
     res.status(500).json({ 
       error: 'Failed to get user limits', 
+      details: error.message 
+    });
+  }
+});
+
+// Random character generator endpoint
+app.get('/v1/random-character', async (req, res) => {
+  try {
+    console.log('Generating random character data');
+    
+    // Create prompt for the model
+    const prompt = `
+      Generate a random fictional character with the following details:
+      1. A unique and interesting name
+      2. A detailed description under 1000 characters
+      3. An age (between 18-100)
+      4. 10 diverse interests/hobbies, each under 200 characters
+      5. A custom greeting message that the character would use to start a conversation (under 200 characters)
+      6. A gender (male or female) for the character avatar
+      
+      Format the response as a JSON object with the following structure:
+      {
+        "name": "Character Name",
+        "description": "Detailed character description",
+        "age": number,
+        "interests": ["Interest 1", "Interest 2", ..., "Interest 10"],
+        "greeting": "Character's custom greeting message",
+        "gender": "male or female"
+      }
+      
+      Be creative and make the character feel unique and well-developed. The description should give insight into their personality, background, and notable traits.
+      The greeting should reflect the character's personality and be engaging to start a conversation.
+      Return ONLY the JSON output without any additional text or explanations.
+    `;
+    
+    // Call Gemini API with structured response
+    const response = await ai.models.generateContent({
+      model: "gemini-1.5-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            name: {
+              type: Type.STRING,
+              description: "The character's name"
+            },
+            description: {
+              type: Type.STRING,
+              description: "A detailed description of the character under 1000 characters"
+            },
+            age: {
+              type: Type.STRING,
+              description: "The character's age as a number"
+            },
+            interests: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.STRING,
+                description: "An interest or hobby of the character under 200 characters"
+              },
+              description: "A list of 10 interests or hobbies"
+            },
+            greeting: {
+              type: Type.STRING,
+              description: "A custom greeting message from the character under 200 characters"
+            },
+            gender: {
+              type: Type.STRING,
+              description: "The gender of the character (male or female) for avatar purposes"
+            }
+          },
+          required: ["name", "description", "age", "interests", "greeting", "gender"],
+        },
+      },
+    });
+    
+    // Parse the response
+    const characterData = JSON.parse(response.text);
+    
+    // Convert age to number if it's a string
+    if (typeof characterData.age === 'string') {
+      characterData.age = parseInt(characterData.age, 10);
+    }
+    
+    // Normalize gender to handle unexpected values
+    const gender = characterData.gender.toLowerCase().trim();
+    characterData.gender = (gender === 'female') ? 'female' : 'male'; // Default to male if not explicitly female
+    
+    // Add avatar URL based on gender
+    characterData.avatarUrl = `https://avatar.iran.liara.run/public?gender=${characterData.gender}`;
+    
+    // Return the structured response
+    res.json(characterData);
+    
+  } catch (error) {
+    console.error('Random Character Generation API Error:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate random character', 
       details: error.message 
     });
   }

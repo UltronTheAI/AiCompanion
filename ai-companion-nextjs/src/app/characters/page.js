@@ -126,7 +126,11 @@ export default function CharactersPage() {
                 )}
               </div>
               <div className={styles.characterInfo}>
-                <h3 className={styles.characterName}>{character.name}</h3>
+                <h3 className={styles.characterName}>
+                  <Link href={`/characters/${character._id}`} className="hover:underline">
+                    {character.name}
+                  </Link>
+                </h3>
                 {character.age && <p className={styles.characterAge}>Age: {character.age}</p>}
                 {character.interests && character.interests.length > 0 && (
                   <div className={styles.interestTags}>
@@ -144,6 +148,9 @@ export default function CharactersPage() {
                 )}
               </div>
               <div className={styles.characterActions}>
+                <Link href={`/characters/${character._id}`} className={styles.viewButton}>
+                  View
+                </Link>
                 <Link href={`/chat/${character._id}`} className={styles.chatButton}>
                   Chat
                 </Link>
