@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import api from '@/services/api';
 import styles from './characters.module.css';
+import Image from 'next/image';
 
 export default function CharactersPage() {
   const { user, isLoaded, isSignedIn } = useUser();
@@ -17,16 +18,7 @@ export default function CharactersPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [characterToDelete, setCharacterToDelete] = useState(null);
 
-  useEffect(() => {
-    if (isLoaded && !isSignedIn) {
-      router.push('/');
-    } else if (isLoaded && isSignedIn) {
-      fetchCharacters();
-      fetchLimits();
-    }
-  }, [isLoaded, isSignedIn, router]);
-
-  const fetchCharacters = async () => {
+  const fetchCharacters = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.getUserCharacters(user.id);
@@ -38,16 +30,25 @@ export default function CharactersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
-  const fetchLimits = async () => {
+  const fetchLimits = useCallback(async () => {
     try {
       const response = await api.getUserLimits(user.id);
       setLimits(response.limits);
     } catch (err) {
       console.error('Error fetching limits:', err);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.push('/');
+    } else if (isLoaded && isSignedIn && user) {
+      fetchCharacters();
+      fetchLimits();
+    }
+  }, [isLoaded, isSignedIn, router, fetchCharacters, fetchLimits, user]);
 
   const handleDeleteClick = (character) => {
     setCharacterToDelete(character);
@@ -118,7 +119,13 @@ export default function CharactersPage() {
             <div key={character._id} className={styles.characterCard}>
               <div className={styles.characterImage}>
                 {character.avatarUrl ? (
-                  <img src={character.avatarUrl} alt={character.name} />
+                  <Image 
+                    src={character.avatarUrl} 
+                    alt={character.name}
+                    width={120}
+                    height={120}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <div className={styles.placeholderImage}>
                     {character.name.charAt(0).toUpperCase()}

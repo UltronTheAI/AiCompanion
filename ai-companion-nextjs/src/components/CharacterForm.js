@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/services/api';
 import styles from './CharacterForm.module.css';
+import Image from 'next/image';
 
 const CharacterForm = ({ clerkId, character, isEditing = false }) => {
   const router = useRouter();
@@ -502,7 +503,7 @@ const CharacterForm = ({ clerkId, character, isEditing = false }) => {
           
           {formData.firstMessageType === 'random' && (
             <div className={styles.infoMessage}>
-              The AI will generate a unique greeting message for each new conversation based on the character's personality.
+              The AI will generate a unique greeting message for each new conversation based on the character&apos;s personality.
             </div>
           )}
         </div>
@@ -521,7 +522,14 @@ const CharacterForm = ({ clerkId, character, isEditing = false }) => {
           
           {imagePreview && (
             <div className={styles.imagePreview}>
-              <img src={imagePreview} alt="Character preview" />
+              <Image 
+                src={imagePreview} 
+                alt="Character preview" 
+                width={200} 
+                height={200} 
+                style={{ objectFit: 'cover' }}
+                quality={90}
+              />
             </div>
           )}
         </div>

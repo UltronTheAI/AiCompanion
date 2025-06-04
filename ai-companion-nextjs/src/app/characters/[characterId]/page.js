@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import api from '@/services/api';
 import styles from '../characters.module.css';
+import Image from 'next/image';
 
 export default function CharacterDetailsPage() {
   const { characterId } = useParams();
@@ -15,18 +16,10 @@ export default function CharacterDetailsPage() {
   const [character, setCharacter] = useState(null);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (isLoaded && !isSignedIn) {
-      router.push('/');
-    } else if (isLoaded && isSignedIn && characterId) {
-      fetchCharacter();
-    }
-  }, [isLoaded, isSignedIn, router, characterId]);
-
-  const fetchCharacter = async () => {
+  const fetchCharacter = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.getCharacter(characterId, user.id);
+      const response = await api.getCharacter(characterId, user?.id);
       setCharacter(response.character);
     } catch (err) {
       console.error('Error fetching character:', err);
@@ -34,7 +27,15 @@ export default function CharacterDetailsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [characterId, user?.id]);
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.push('/');
+    } else if (isLoaded && isSignedIn && characterId && user) {
+      fetchCharacter();
+    }
+  }, [isLoaded, isSignedIn, router, characterId, user, fetchCharacter]);
 
   if (!isLoaded || loading) {
     return (
@@ -144,10 +145,13 @@ export default function CharacterDetailsPage() {
                 <div className="flex-shrink-0">
                   <div className="relative w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full overflow-hidden ring-4 ring-white dark:ring-gray-700 shadow-xl">
                     {character.avatarUrl ? (
-                      <img 
+                      <Image 
                         src={character.avatarUrl} 
                         alt={character.name} 
-                        className="w-full h-full object-cover" 
+                        width={500}
+                        height={500}
+                        className="w-full h-full object-cover"
+                        priority
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-purple-500 text-white text-4xl font-bold">
