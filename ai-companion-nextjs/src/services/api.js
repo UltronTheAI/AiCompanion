@@ -1,10 +1,24 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+// Dynamically determine the API base URL based on environment
+let API_BASE_URL;
+
+// In browser environments
+if (typeof window !== 'undefined') {
+  // For client-side code, use the NEXT_PUBLIC_ environment variable
+  API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+} else {
+  // For server-side code, can use either NEXT_PUBLIC_ or server-only env vars
+  API_BASE_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+}
+
 import { isValidObjectId, getObjectIdString } from '@/utils/validation';
 
 /**
  * Makes API requests to the backend server
  */
 const api = {
+  // Include API base URL for external reference if needed
+  baseUrl: API_BASE_URL,
+  
   /**
    * Verifies a user with Clerk ID
    * @param {string} clerkId - The Clerk user ID
