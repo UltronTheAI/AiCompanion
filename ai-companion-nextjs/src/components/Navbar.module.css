@@ -1,12 +1,15 @@
 .navbar {
   width: 100%;
-  height: 64px;
+  height: var(--navbar-height);
   border-bottom: 1px solid var(--border-color);
   background-color: var(--background-primary);
-  box-shadow: 0 1px 3px var(--shadow-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   position: sticky;
   top: 0;
   z-index: 100;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background-color: rgba(var(--background-primary-rgb), 0.85);
 }
 
 .container {
@@ -20,24 +23,26 @@
 }
 
 .logo {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 700;
   color: var(--primary-color);
   display: flex;
   align-items: center;
   gap: 0.5rem;
   letter-spacing: -0.5px;
+  transition: all 0.25s ease;
 }
 
 .logo:hover {
   color: var(--primary-dark);
+  transform: scale(1.02);
 }
 
 .navLinks {
   display: flex;
-  gap: 2rem;
+  gap: 2.5rem;
   margin-right: auto;
-  margin-left: 3rem;
+  margin-left: 3.5rem;
 }
 
 .navLink {
@@ -46,11 +51,12 @@
   position: relative;
   padding: 0.5rem 0;
   font-weight: 500;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .navLink:hover {
   color: var(--primary-color);
+  text-decoration: none;
 }
 
 .navLink::after {
@@ -62,67 +68,162 @@
   height: 2px;
   background-color: var(--primary-color);
   transition: width 0.3s ease;
+  border-radius: 2px;
 }
 
 .navLink:hover::after {
   width: 100%;
 }
 
+.navLink.active {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.navLink.active::after {
+  width: 100%;
+}
+
 .authButtons {
   display: flex;
   align-items: center;
+  gap: 12px;
 }
 
 .signInButton {
   background-color: var(--primary-color);
   color: white;
   border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
+  padding: 0.7rem 1.4rem;
+  border-radius: 10px;
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .signInButton:hover {
   background-color: var(--primary-dark);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
 }
 
 .signInButton:active {
   transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}
+
+.mobileMenuButton {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.mobileMenuButton:hover {
+  color: var(--primary-color);
+  background-color: var(--background-hover);
+}
+
+.mobileMenu {
+  display: none;
+  position: fixed;
+  top: var(--navbar-height);
+  left: 0;
+  right: 0;
+  background-color: var(--background-primary);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  z-index: 99;
+  flex-direction: column;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  transform: translateY(-100%);
+  transition: transform 0.3s ease;
+}
+
+.mobileMenu.open {
+  transform: translateY(0);
+  display: flex;
+}
+
+.mobileNavLink {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  padding: 0.75rem 0;
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-color);
+  width: 100%;
+  text-align: center;
+}
+
+.mobileNavLink:last-child {
+  border-bottom: none;
 }
 
 /* Mobile styles */
+@media (max-width: 1024px) {
+  .navLinks {
+    margin-left: 2.5rem;
+    gap: 2rem;
+  }
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 0 1rem;
   }
   
   .logo {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
   }
   
   .navLinks {
-    margin-left: 1.5rem;
-    gap: 1.5rem;
+    display: none;
   }
   
-  .navLink {
-    font-size: 0.95rem;
+  .mobileMenuButton {
+    display: block;
+  }
+  
+  .authButtons {
+    gap: 8px;
+  }
+  
+  .signInButton {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
   }
 }
 
-@media (max-width: 640px) {
-  .navLinks {
-    margin-left: 1rem;
-    gap: 1rem;
+@media (max-width: 480px) {
+  .navbar {
+    height: 56px;
+  }
+  
+  .container {
+    padding: 0 0.75rem;
+  }
+  
+  .logo {
+    font-size: 1.3rem;
   }
   
   .signInButton {
     padding: 0.5rem 1rem;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+  }
+  
+  .mobileMenu {
+    top: 56px;
   }
 } 

@@ -1,32 +1,47 @@
 .messageList {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
+  padding-bottom: 10px;
 }
 
 .messageContainer {
-  padding: 16px 20px;
-  border-radius: 16px;
+  padding: 18px 22px;
+  border-radius: 18px;
   position: relative;
   transition: all 0.3s ease;
-  max-width: 90%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  max-width: 85%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
 }
 
 .userMessage {
   background-color: var(--background-tertiary);
   margin-left: auto;
   border-bottom-right-radius: 4px;
-  border-top-left-radius: 20px;
+  border-top-left-radius: 22px;
   color: var(--text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .aiMessage {
   background-color: var(--background-secondary);
   margin-right: auto;
   border-bottom-left-radius: 4px;
-  border-top-right-radius: 20px;
+  border-top-right-radius: 22px;
   color: var(--text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .pending {
@@ -36,10 +51,10 @@
 .pending::after {
   content: '';
   position: absolute;
-  bottom: 8px;
-  right: 8px;
-  width: 12px;
-  height: 12px;
+  bottom: 10px;
+  right: 10px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   border: 2px solid var(--primary-color);
   border-top-color: transparent;
@@ -53,10 +68,10 @@
 .regenerating::after {
   content: '';
   position: absolute;
-  bottom: 8px;
-  right: 8px;
-  width: 12px;
-  height: 12px;
+  bottom: 10px;
+  right: 10px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   border: 2px solid var(--primary-color);
   border-top-color: transparent;
@@ -70,15 +85,20 @@
 .messageHeader {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
-  font-size: 0.85rem;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
 }
 
 .messageAuthor {
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  color: var(--primary-color);
+}
+
+.userMessage .messageAuthor {
+  color: var(--text-primary);
 }
 
 .userMessage .messageAuthor::before {
@@ -93,27 +113,43 @@
   color: var(--text-tertiary);
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
+  gap: 6px;
+  font-size: 0.8rem;
 }
 
 .editedTag {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: var(--text-tertiary);
   font-style: italic;
 }
 
 .messageContent {
-  font-size: 0.95rem;
+  font-size: 1rem;
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
+.messageContent em {
+  color: var(--primary-color);
+}
+
+/* Style for internal thoughts in asterisks */
+.messageContent {
+  position: relative;
+}
+
+.messageContent em, 
+.messageContent i {
+  font-style: italic;
+  color: var(--text-primary);
+  opacity: 0.85;
+}
+
 .messageActions {
   display: flex;
-  gap: 10px;
-  margin-top: 12px;
+  gap: 12px;
+  margin-top: 14px;
   opacity: 0;
   transition: opacity 0.2s ease;
   justify-content: flex-end;
@@ -127,14 +163,14 @@
   background: none;
   border: none;
   color: var(--text-tertiary);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  padding: 6px 10px;
-  border-radius: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .actionButton:hover:not(:disabled) {
@@ -153,16 +189,16 @@
 
 .editTextarea {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   border: 1px solid var(--primary-light);
-  border-radius: 10px;
+  border-radius: 12px;
   background-color: var(--background-primary);
   color: var(--text-primary);
-  font-size: 0.95rem;
+  font-size: 1rem;
   line-height: 1.5;
   min-height: 120px;
   resize: vertical;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   font-family: inherit;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
   transition: all 0.2s ease;
@@ -176,32 +212,34 @@
 
 .editActions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: flex-end;
 }
 
 .saveButton, .cancelButton {
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 80px;
+  min-width: 90px;
+  font-weight: 500;
 }
 
 .saveButton {
   background-color: var(--primary-color);
   color: white;
   border: none;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
 }
 
 .saveButton:hover {
   background-color: var(--primary-dark);
   transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
 }
 
 .saveButton:active {
@@ -217,28 +255,7 @@
 .cancelButton:hover {
   background-color: var(--background-hover);
   color: var(--text-primary);
-}
-
-/* Mobile styles */
-@media (max-width: 768px) {
-  .messageContainer {
-    max-width: 95%;
-    padding: 14px 16px;
-  }
-  
-  .messageActions {
-    margin-top: 10px;
-  }
-  
-  .actionButton {
-    padding: 4px 8px;
-    font-size: 0.8rem;
-  }
-  
-  .saveButton, .cancelButton {
-    padding: 6px 12px;
-    font-size: 0.85rem;
-  }
+  border-color: var(--text-secondary);
 }
 
 .audioError {
@@ -246,19 +263,133 @@
   border: 1px solid rgba(255, 77, 79, 0.3);
   color: #ff4d4f;
   padding: 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.9rem;
-  margin: 12px 0;
-  text-align: center;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.audioError::before {
+  content: "⚠️";
 }
 
 .pinnedMessage {
-  border-left: 3px solid var(--primary-color);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--primary-light);
+  background-color: rgba(59, 130, 246, 0.05);
 }
 
 .pinnedBadge {
-  margin-left: 6px;
-  font-size: 0.9rem;
-  color: var(--primary-color);
+  position: absolute;
+  top: -8px;
+  right: 20px;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pinnedBadge::before {
+  content: "📌";
+  font-size: 0.8rem;
+}
+
+/* Mobile styles */
+@media (max-width: 1024px) {
+  .messageContainer {
+    max-width: 90%;
+    padding: 16px 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .messageList {
+    gap: 20px;
+  }
+  
+  .messageContainer {
+    max-width: 92%;
+    padding: 14px 18px;
+  }
+  
+  .messageActions {
+    margin-top: 12px;
+    gap: 8px;
+  }
+  
+  .actionButton {
+    padding: 5px 10px;
+    font-size: 0.85rem;
+  }
+  
+  .saveButton, .cancelButton {
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    min-width: 80px;
+  }
+  
+  .messageContent {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .messageList {
+    gap: 16px;
+  }
+  
+  .messageContainer {
+    max-width: 95%;
+    padding: 12px 16px;
+    border-radius: 16px;
+  }
+  
+  .userMessage {
+    border-top-left-radius: 18px;
+    border-bottom-right-radius: 4px;
+  }
+  
+  .aiMessage {
+    border-top-right-radius: 18px;
+    border-bottom-left-radius: 4px;
+  }
+  
+  .messageHeader {
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+  }
+  
+  .messageContent {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  
+  .messageActions {
+    position: relative;
+    opacity: 1;
+    margin-top: 10px;
+    justify-content: flex-start;
+  }
+  
+  .actionButton {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+  }
+  
+  .editTextarea {
+    padding: 12px;
+    min-height: 100px;
+  }
+  
+  .saveButton, .cancelButton {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    min-width: 70px;
+  }
 } 
